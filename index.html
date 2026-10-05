@@ -135,22 +135,17 @@ function updateTradeFilters(){
   $("tradeTypeFilter").value=t; $("tradeSeriesFilter").value=s;
 }
 function renderTrade(){
-  if(tradeMode!=="want"){
-    $("tradeResultCount").textContent="0件";
-    $("tradeCardList").innerHTML='<div class="empty">「譲」タブはこれから実装します。</div>';
-    return;
-  }
   updateTradeFilters();
   const q=$("tradeSearch").value.trim().toLowerCase();
   const type=$("tradeTypeFilter").value, series=$("tradeSeriesFilter").value, rarity=$("tradeRarityFilter").value, fav=$("tradeFavoriteFilter").value;
-  let list=cards.filter(c=>Number(c.qty)===0 && (!q||c.name.toLowerCase().includes(q)) && (!type||c.type===type) && (!series||c.series===series) && (!rarity||c.rarity===rarity) && (!fav||(fav==="yes"?!!c.favorite:!c.favorite)));
+  let list=cards.filter(c=>(tradeMode==="want"?Number(c.qty)===0:Number(c.qty)>=2) && (!q||c.name.toLowerCase().includes(q)) && (!type||c.type===type) && (!series||c.series===series) && (!rarity||c.rarity===rarity) && (!fav||(fav==="yes"?!!c.favorite:!c.favorite)));
   $("tradeResultCount").textContent=list.length+"件";
   $("tradeCardList").innerHTML=list.length?list.map(c=>`
  <article class="card">
   <div class="thumb">${c.image?`<img src="${c.image}">`:"カード画像"}${c.favorite?`<span class="favoriteStar">☆</span>`:""}</div>
   <div><div class="name">${esc(c.name)}</div><div class="meta">${esc(c.type||"タイプ未設定")} ・ ${esc(c.series||"弾未設定")} ・ ${esc(c.rarity||"レアリティ未設定")}</div>${c.memo?`<div class="memo">📝 ${esc(c.memo)}</div>`:""}</div>
   <button class="more" onclick="openEdit('${c.id}')">⋯</button>
- </article>`).join(""):`<div class="empty">条件に合う未所持カードがありません。</div>`;
+ </article>`).join(""):`<div class="empty">条件に合うカードがありません。</div>`;
 }
 function changeQty(id,d){const c=cards.find(x=>x.id===id); if(!c)return;c.qty=Math.max(0,(Number(c.qty)||0)+d);saveData();render();renderTrade();renderStats()}
 function openAdd(){editingId=null;$("modalTitle").textContent="カードを追加";$("nameInput").value="";$("typeInput").value="";$("seriesInput").value="";$("rarityInput").value="";$("qtyInput").value=0;$("memoInput").value="";$("favoriteInput").classList.remove("on");$("favoriteInput").textContent="☆ 欲しい！";$("imageInput").value="";$("deleteBtn").classList.add("hidden");$("modal").classList.add("show")}
