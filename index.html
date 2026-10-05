@@ -69,7 +69,7 @@ nav button{flex:1;max-width:180px;padding:10px;border-radius:12px;background:#f5
 <div class="field"><label>タイプ</label><select id="typeInput"><option value="">タイプを選択</option><option value="キュート">キュート</option><option value="クール">クール</option><option value="セクシー">セクシー</option><option value="ポップ">ポップ</option></select></div>
 <div class="field"><label>第○弾</label><input id="seriesInput" placeholder="例：第1弾"></div>
 <div class="field"><label>レアリティ</label><select id="rarityInput"><option value="">未設定</option><option value="PR">PR</option><option value="R">R</option><option value="N">N</option><option value="ER">ER</option></select></div>
-<div class="field"><label>所持枚数</label><input id="qtyInput" type="number" min="0" step="1" value="0"></div><div class="field"><label>お気に入り</label><button type="button" class="toggle" id="favoriteInput">☆ お気に入りにする</button></div>
+<div class="field"><label>所持枚数</label><input id="qtyInput" type="number" min="0" step="1" value="0"></div><div class="field"><label>お気に入り</label><button type="button" class="toggle" id="favoriteInput">☆ 欲しい！</button></div>
 <div class="field"><label>メモ（30文字まで）</label><input id="memoInput" maxlength="30" placeholder="例：交換予定"></div>
 <div class="field"><label>カード画像（任意）</label><input id="imageInput" type="file" accept="image/*"></div>
 <div class="modalBtns"><button class="cancel" id="cancelBtn">キャンセル</button><button class="save" id="saveBtn">保存</button></div>
@@ -114,8 +114,8 @@ function render(){
  </article>`).join(""):`<div class="empty">${cards.length?"条件に合うカードがありません。":"「カードを追加」から登録してね。"} </div>`;
 }
 function changeQty(id,d){const c=cards.find(x=>x.id===id); if(!c)return;c.qty=Math.max(0,(Number(c.qty)||0)+d);saveData();render();renderStats()}
-function openAdd(){editingId=null;$("modalTitle").textContent="カードを追加";$("nameInput").value="";$("typeInput").value="";$("seriesInput").value="";$("rarityInput").value="";$("qtyInput").value=0;$("memoInput").value="";$("favoriteInput").classList.remove("on");$("favoriteInput").textContent="☆ お気に入りにする";$("imageInput").value="";$("deleteBtn").classList.add("hidden");$("modal").classList.add("show")}
-function openEdit(id){const c=cards.find(x=>x.id===id);if(!c)return;editingId=id;$("modalTitle").textContent="カードを編集";$("nameInput").value=c.name;$("typeInput").value=c.type;$("seriesInput").value=c.series;$("rarityInput").value=c.rarity||"";$("qtyInput").value=c.qty;$("memoInput").value=c.memo||"";$("favoriteInput").classList.toggle("on",!!c.favorite);$("favoriteInput").textContent=c.favorite?"★ お気に入り":"☆ お気に入りにする";$("imageInput").value="";$("deleteBtn").classList.remove("hidden");$("modal").classList.add("show")}
+function openAdd(){editingId=null;$("modalTitle").textContent="カードを追加";$("nameInput").value="";$("typeInput").value="";$("seriesInput").value="";$("rarityInput").value="";$("qtyInput").value=0;$("memoInput").value="";$("favoriteInput").classList.remove("on");$("favoriteInput").textContent="☆ 欲しい！";$("imageInput").value="";$("deleteBtn").classList.add("hidden");$("modal").classList.add("show")}
+function openEdit(id){const c=cards.find(x=>x.id===id);if(!c)return;editingId=id;$("modalTitle").textContent="カードを編集";$("nameInput").value=c.name;$("typeInput").value=c.type;$("seriesInput").value=c.series;$("rarityInput").value=c.rarity||"";$("qtyInput").value=c.qty;$("memoInput").value=c.memo||"";$("favoriteInput").classList.toggle("on",!!c.favorite);$("favoriteInput").textContent=c.favorite?"★ 欲しい！":"☆ 欲しい！";$("imageInput").value="";$("deleteBtn").classList.remove("hidden");$("modal").classList.add("show")}
 function closeModal(){$("modal").classList.remove("show")}
 async function saveCard(){
  const name=$("nameInput").value.trim(); if(!name){alert("カード名を入力してね");return}
@@ -133,7 +133,7 @@ function renderStats(){
  const draw=m=>Object.entries(m).sort((a,b)=>a[0].localeCompare(b[0],"ja")).map(([k,v])=>`<div class="miniRow"><span>${esc(k)}</span><span>${v.o}/${v.t}<span class="miniBar"><i style="width:${v.t?Math.round(v.o/v.t*100):0}%"></i></span></span></div>`).join("")||'<div class="sub">まだカードがありません。</div>';
  $("typeStats").innerHTML=draw(group("type"));$("seriesStats").innerHTML=draw(group("series"));$("rarityStats").innerHTML=draw(group("rarity"));
 }
-$("addBtn").onclick=openAdd;$("cancelBtn").onclick=closeModal;$("saveBtn").onclick=saveCard;$("favoriteInput").onclick=()=>{$("favoriteInput").classList.toggle("on");$("favoriteInput").textContent=$("favoriteInput").classList.contains("on")?"★ お気に入り":"☆ お気に入りにする"};
+$("addBtn").onclick=openAdd;$("cancelBtn").onclick=closeModal;$("saveBtn").onclick=saveCard;$("favoriteInput").onclick=()=>{$("favoriteInput").classList.toggle("on");$("favoriteInput").textContent=$("favoriteInput").classList.contains("on")?"★ 欲しい！":"☆ 欲しい！"};
 $("deleteBtn").onclick=()=>{if(confirm("このカードを削除する？")){cards=cards.filter(c=>c.id!==editingId);saveData();closeModal();render();renderStats()}};
 ["search","typeFilter","seriesFilter","rarityFilter"].forEach(id=>$(id).addEventListener("input",render));
 $("unownedToggle").onclick=()=>{unownedOnly=!unownedOnly;$("unownedToggle").classList.toggle("on",unownedOnly);render()};
