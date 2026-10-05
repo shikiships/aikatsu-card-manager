@@ -166,11 +166,42 @@ function changeQty(id,d){const c=cards.find(x=>x.id===id); if(!c)return;c.qty=Ma
 function openAdd(){editingId=null;$("modalTitle").textContent="カードを追加";$("nameInput").value="";$("typeInput").value="";$("seriesInput").value="";$("rarityInput").value="";$("qtyInput").value=0;$("memoInput").value="";$("favoriteInput").classList.remove("on");$("favoriteInput").textContent="☆ 欲しい！";$("imageInput").value="";$("deleteBtn").classList.add("hidden");$("modal").classList.add("show")}
 function openEdit(id){const c=cards.find(x=>x.id===id);if(!c)return;editingId=id;$("modalTitle").textContent="カードを編集";$("nameInput").value=c.name;$("typeInput").value=c.type;$("seriesInput").value=c.series;$("rarityInput").value=c.rarity||"";$("qtyInput").value=c.qty;$("memoInput").value=c.memo||"";$("favoriteInput").classList.toggle("on",!!c.favorite);$("favoriteInput").textContent=c.favorite?"★ 欲しい！":"☆ 欲しい！";$("imageInput").value="";$("deleteBtn").classList.remove("hidden");$("modal").classList.add("show")}
 function closeModal(){$("modal").classList.remove("show")}
+function compressImage(file,maxSize=1200,quality=0.8){
+ return new Promise((resolve,reject)=>{
+  const reader=new FileReader();
+  reader.onload=()=>{
+   const img=new Image();
+   img.onload=()=>{
+    const longest=Math.max(img.naturalWidth,img.naturalHeight);
+    const scale=Math.min(1,maxSize/longest);
+    const w=Math.max(1,Math.round(img.naturalWidth*scale));
+    const h=Math.max(1,Math.round(img.naturalHeight*scale));
+    const canvas=document.createElement("canvas");
+    canvas.width=w;canvas.height=h;
+    const ctx=canvas.getContext("2d");
+    if(!ctx){reject(new Error("画像処理に失敗しました"));return}
+    ctx.drawImage(img,0,0,w,h);
+    resolve(canvas.toDataURL("image/jpeg",quality));
+   };
+   img.onerror=()=>reject(new Error("画像を読み込めませんでした"));
+   img.src=reader.result;
+  };
+  reader.onerror=()=>reject(new Error("画像を読み込めませんでした"));
+  reader.readAsDataURL(file);
+ });
+}
 async function saveCard(){
  const name=$("nameInput").value.trim(); if(!name){alert("カード名を入力してね");return}
  let image=editingId?(cards.find(c=>c.id===editingId)?.image||""):"";
  const file=$("imageInput").files[0];
- if(file) image=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)});
+ if(file){
+  try{
+   image=await compressImage(file,1200,0.8);
+  }catch(e){
+   alert("画像を保存できませんでした。もう一度試してね");
+   return;
+  }
+ }
  const data={name,type:$("typeInput").value.trim(),series:$("seriesInput").value.trim(),rarity:$("rarityInput").value,qty:Math.max(0,Number($("qtyInput").value)||0),memo:$("memoInput").value.trim(),favorite:$("favoriteInput").classList.contains("on"),image};
  if(editingId){Object.assign(cards.find(c=>c.id===editingId),data)}else{cards.push({id:crypto.randomUUID(),...data})}
  saveData();closeModal();render();renderTrade();renderStats()
