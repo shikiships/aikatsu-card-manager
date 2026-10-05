@@ -36,6 +36,7 @@ nav button{flex:1;max-width:180px;padding:10px;border-radius:12px;background:#f5
 #cardList.grid .card .thumb,#tradeCardList.grid .card .thumb{width:100%;height:auto;aspect-ratio:72/94;border-radius:0}
 #cardList.grid .card > div:nth-child(2),#cardList.grid .card > .more,#tradeCardList.grid .card > div:nth-child(2),#tradeCardList.grid .card > .more{display:none}
 #cardList.grid .favoriteStar,#tradeCardList.grid .favoriteStar,#tradeCardList.grid .offerCount{font-size:20px}
+.appVersion{margin-left:auto;color:var(--muted);font-size:12px;white-space:nowrap;align-self:center}
 .hidden{display:none}
 </style>
 </head>
@@ -78,7 +79,7 @@ nav button{flex:1;max-width:180px;padding:10px;border-radius:12px;background:#f5
 <div class="sectionTitle">弾別</div><div id="seriesStats"></div>
 <div class="sectionTitle">レアリティ別</div><div id="rarityStats"></div>
 <div class="sectionTitle">データ</div>
-<div class="row"><button class="toggle" id="exportBtn">データを書き出す</button><button class="toggle" id="importBtn">データを読み込む</button><input id="importFile" type="file" accept=".json" class="hidden"></div>
+<div class="row"><button class="toggle" id="exportBtn">データを書き出す</button><button class="toggle" id="importBtn">データを読み込む</button><span class="appVersion">v10</span><input id="importFile" type="file" accept=".json" class="hidden"></div>
 </section>
 </main>
 
