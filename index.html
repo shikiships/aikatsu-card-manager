@@ -114,15 +114,15 @@ function render(){
  </article>`).join(""):`<div class="empty">${cards.length?"条件に合うカードがありません。":"「カードを追加」から登録してね。"} </div>`;
 }
 function changeQty(id,d){const c=cards.find(x=>x.id===id); if(!c)return;c.qty=Math.max(0,(Number(c.qty)||0)+d);saveData();render();renderStats()}
-function openAdd(){editingId=null;$("modalTitle").textContent="カードを追加";$("nameInput").value="";$("typeInput").value="";$("seriesInput").value="";$("rarityInput").value="";$("qtyInput").value=0;$("imageInput").value="";$("deleteBtn").classList.add("hidden");$("modal").classList.add("show")}
-function openEdit(id){const c=cards.find(x=>x.id===id);if(!c)return;editingId=id;$("modalTitle").textContent="カードを編集";$("nameInput").value=c.name;$("typeInput").value=c.type;$("seriesInput").value=c.series;$("rarityInput").value=c.rarity||"";$("qtyInput").value=c.qty;$("imageInput").value="";$("deleteBtn").classList.remove("hidden");$("modal").classList.add("show")}
+function openAdd(){editingId=null;$("modalTitle").textContent="カードを追加";$("nameInput").value="";$("typeInput").value="";$("seriesInput").value="";$("rarityInput").value="";$("qtyInput").value=0;$("memoInput").value="";$("imageInput").value="";$("deleteBtn").classList.add("hidden");$("modal").classList.add("show")}
+function openEdit(id){const c=cards.find(x=>x.id===id);if(!c)return;editingId=id;$("modalTitle").textContent="カードを編集";$("nameInput").value=c.name;$("typeInput").value=c.type;$("seriesInput").value=c.series;$("rarityInput").value=c.rarity||"";$("qtyInput").value=c.qty;$("memoInput").value=c.memo||"";$("imageInput").value="";$("deleteBtn").classList.remove("hidden");$("modal").classList.add("show")}
 function closeModal(){$("modal").classList.remove("show")}
 async function saveCard(){
  const name=$("nameInput").value.trim(); if(!name){alert("カード名を入力してね");return}
  let image=editingId?(cards.find(c=>c.id===editingId)?.image||""):"";
  const file=$("imageInput").files[0];
  if(file) image=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)});
- const data={name,type:$("typeInput").value.trim(),series:$("seriesInput").value.trim(),rarity:$("rarityInput").value,qty:Math.max(0,Number($("qtyInput").value)||0),image};
+ const data={name,type:$("typeInput").value.trim(),series:$("seriesInput").value.trim(),rarity:$("rarityInput").value,qty:Math.max(0,Number($("qtyInput").value)||0),memo:$("memoInput").value.trim(),image};
  if(editingId){Object.assign(cards.find(c=>c.id===editingId),data)}else{cards.push({id:crypto.randomUUID(),...data})}
  saveData();closeModal();render();renderStats()
 }
