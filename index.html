@@ -29,6 +29,13 @@ nav button{flex:1;max-width:180px;padding:10px;border-radius:12px;background:#f5
 .modal{position:fixed;inset:0;background:rgba(40,25,35,.4);z-index:10;display:none;align-items:end}.modal.show{display:flex}.sheet{background:#fff;width:100%;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px 16px calc(24px + env(safe-area-inset-bottom))}.sheet h2{margin:0 0 15px;font-size:19px}.field{margin:10px 0}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}.field input,.field select{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}.memo{font-size:12px;color:var(--muted);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.modalBtns{display:flex;gap:8px;margin-top:16px}.modalBtns button{flex:1;padding:12px;border-radius:12px}.cancel{background:#eee7eb}.save{background:var(--accent);color:#fff;font-weight:700}.danger{background:#fff0f2;color:#c45c76}
 .sectionTitle{font-size:15px;font-weight:750;margin:20px 0 8px}.miniRow{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.miniBar{width:120px;height:7px;background:#eee5ea;border-radius:99px;overflow:hidden;display:inline-block;margin-left:8px}.miniBar i{display:block;height:100%;background:var(--accent)}
 .tradeTabs{display:flex;gap:8px;background:#f5edf2;border-radius:14px;padding:4px;margin-bottom:12px}.tradeTabs button{flex:1;padding:10px;border-radius:10px;background:transparent;color:#6f5d69}.tradeTabs button.active{background:#fff;color:#5a3c49;font-weight:700;box-shadow:0 1px 5px rgba(80,50,70,.08)}
+/* 表示形式切り替え */
+.filterActionRow{width:100%}.viewToggle{margin-left:auto;width:42px;height:38px;padding:0;border-radius:12px;background:#eee5eb;color:var(--text);font-size:21px;line-height:1}.viewToggle:active{transform:scale(.96)}
+.cardList.grid,.tradeCardList.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.cardList.grid .card,.tradeCardList.grid .card{display:block;padding:0;margin:0;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(80,50,70,.05)}
+.cardList.grid .card .thumb,.tradeCardList.grid .card .thumb{width:100%;height:auto;aspect-ratio:72/94;border-radius:0}
+.cardList.grid .card > div:nth-child(2),.cardList.grid .card > .more,.tradeCardList.grid .card > div:nth-child(2),.tradeCardList.grid .card > .more{display:none}
+.cardList.grid .favoriteStar,.tradeCardList.grid .favoriteStar,.tradeCardList.grid .offerCount{font-size:20px}
 .hidden{display:none}
 </style>
 </head>
@@ -45,7 +52,7 @@ nav button{flex:1;max-width:180px;padding:10px;border-radius:12px;background:#f5
   <input class="search" id="search" placeholder="🔎 カード名で検索">
   <div class="filters"><select id="typeFilter"><option value="">すべてのタイプ</option></select><select id="seriesFilter"><option value="">すべての弾</option></select></div>
   <select id="rarityFilter"><option value="">すべてのレアリティ</option><option value="PR">PR</option><option value="R">R</option><option value="N">N</option><option value="ER">ER</option></select>
-  <div class="row"><button class="toggle" id="unownedToggle">未所持だけ表示</button><button class="toggle" id="clearFilters">絞り込み解除</button></div>
+  <div class="row filterActionRow"><button class="toggle" id="unownedToggle">未所持だけ表示</button><button class="toggle" id="clearFilters">絞り込み解除</button><button class="viewToggle" id="cardViewToggle" aria-label="グリッド形式に切り替え" title="グリッド形式">▦</button></div>
 </div>
 <div class="actions"><span class="countLabel" id="resultCount">0件</span></div>
 <button class="primary floatingAdd" id="addBtn">＋ カードを追加</button>
@@ -59,7 +66,7 @@ nav button{flex:1;max-width:180px;padding:10px;border-radius:12px;background:#f5
   <div class="filters"><select id="tradeTypeFilter"><option value="">すべてのタイプ</option></select><select id="tradeSeriesFilter"><option value="">すべての弾</option></select></div>
   <select id="tradeRarityFilter"><option value="">すべてのレアリティ</option><option value="PR">PR</option><option value="R">R</option><option value="N">N</option><option value="ER">ER</option></select>
   <select id="tradeFavoriteFilter"><option value="">欲しい！：全部</option><option value="yes">欲しい！：あり</option><option value="no">欲しい！：なし</option></select>
-  <div class="row"><button class="toggle" id="tradeClearFilters">絞り込み解除</button></div>
+  <div class="row filterActionRow"><button class="toggle" id="tradeClearFilters">絞り込み解除</button><button class="viewToggle" id="tradeViewToggle" aria-label="グリッド形式に切り替え" title="グリッド形式">▦</button></div>
 </div>
 <div class="actions"><span class="countLabel" id="tradeResultCount">0件</span></div>
 <div id="tradeCardList"></div>
@@ -93,7 +100,7 @@ nav button{flex:1;max-width:180px;padding:10px;border-radius:12px;background:#f5
 <script>
 const KEY="aikatsu-card-manager-v1";
 let cards=JSON.parse(localStorage.getItem(KEY)||"[]");
-let editingId=null, unownedOnly=false, tradeMode="want";
+let editingId=null, unownedOnly=false, tradeMode="want", cardViewMode="list", tradeViewMode="list";
 
 const $=id=>document.getElementById(id);
 function saveData(){localStorage.setItem(KEY,JSON.stringify(cards))}
@@ -118,6 +125,10 @@ function render(){
  const q=$("search").value.trim().toLowerCase(), type=$("typeFilter").value, series=$("seriesFilter").value, rarity=$("rarityFilter").value;
  const list=cards.filter(c=>(!q||c.name.toLowerCase().includes(q))&&(!type||c.type===type)&&(!series||c.series===series)&&(!rarity||c.rarity===rarity)&&(!unownedOnly||Number(c.qty)===0));
  $("resultCount").textContent=list.length+"件";
+ $("cardList").classList.toggle("grid",cardViewMode==="grid");
+ $("cardViewToggle").textContent=cardViewMode==="list"?"▦":"☰";
+ $("cardViewToggle").setAttribute("aria-label",cardViewMode==="list"?"グリッド形式に切り替え":"リスト形式に切り替え");
+ $("cardViewToggle").title=cardViewMode==="list"?"グリッド形式":"リスト形式";
  $("cardList").innerHTML=list.length?list.map(c=>`
  <article class="card">
   <div class="thumb">${c.image?`<img src="${c.image}">`:"カード画像"}${c.favorite?`<span class="favoriteStar">☆</span>`:""}</div>
@@ -140,6 +151,10 @@ function renderTrade(){
   const type=$("tradeTypeFilter").value, series=$("tradeSeriesFilter").value, rarity=$("tradeRarityFilter").value, fav=$("tradeFavoriteFilter").value;
   let list=cards.filter(c=>(tradeMode==="want"?Number(c.qty)===0:Number(c.qty)>=2) && (!q||c.name.toLowerCase().includes(q)) && (!type||c.type===type) && (!series||c.series===series) && (!rarity||c.rarity===rarity) && (!fav||(fav==="yes"?!!c.favorite:!c.favorite)));
   $("tradeResultCount").textContent=list.length+"件";
+  $("tradeCardList").classList.toggle("grid",tradeViewMode==="grid");
+  $("tradeViewToggle").textContent=tradeViewMode==="list"?"▦":"☰";
+  $("tradeViewToggle").setAttribute("aria-label",tradeViewMode==="list"?"グリッド形式に切り替え":"リスト形式に切り替え");
+  $("tradeViewToggle").title=tradeViewMode==="list"?"グリッド形式":"リスト形式";
   $("tradeCardList").innerHTML=list.length?list.map(c=>`
  <article class="card">
   <div class="thumb">${c.image?`<img src="${c.image}">`:"カード画像"}${c.favorite?`<span class="favoriteStar">☆</span>`:""}${tradeMode==="offer"?`<span class="offerCount">${Math.max(0,Number(c.qty)||0)-1}</span>`:""}</div>
@@ -158,7 +173,7 @@ async function saveCard(){
  if(file) image=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)});
  const data={name,type:$("typeInput").value.trim(),series:$("seriesInput").value.trim(),rarity:$("rarityInput").value,qty:Math.max(0,Number($("qtyInput").value)||0),memo:$("memoInput").value.trim(),favorite:$("favoriteInput").classList.contains("on"),image};
  if(editingId){Object.assign(cards.find(c=>c.id===editingId),data)}else{cards.push({id:crypto.randomUUID(),...data})}
- saveData();closeModal();render();renderStats()
+ saveData();closeModal();render();renderTrade();renderStats()
 }
 function renderStats(){
  const total=cards.length, owned=cards.filter(c=>Number(c.qty)>0).length, pct=total?Math.round(owned/total*100):0;
@@ -168,12 +183,14 @@ function renderStats(){
  $("typeStats").innerHTML=draw(group("type"));$("seriesStats").innerHTML=draw(group("series"));$("rarityStats").innerHTML=draw(group("rarity"));
 }
 $("addBtn").onclick=openAdd;$("cancelBtn").onclick=closeModal;$("saveBtn").onclick=saveCard;$("favoriteInput").onclick=()=>{$("favoriteInput").classList.toggle("on");$("favoriteInput").textContent=$("favoriteInput").classList.contains("on")?"★ 欲しい！":"☆ 欲しい！"};
-$("deleteBtn").onclick=()=>{if(confirm("このカードを削除する？")){cards=cards.filter(c=>c.id!==editingId);saveData();closeModal();render();renderStats()}};
+$("deleteBtn").onclick=()=>{if(confirm("このカードを削除する？")){cards=cards.filter(c=>c.id!==editingId);saveData();closeModal();render();renderTrade();renderStats()}};
 ["search","typeFilter","seriesFilter","rarityFilter"].forEach(id=>$(id).addEventListener("input",render));
 ["tradeSearch","tradeTypeFilter","tradeSeriesFilter","tradeRarityFilter","tradeFavoriteFilter"].forEach(id=>$(id).addEventListener("input",renderTrade));
 $("tradeClearFilters").onclick=()=>{$("tradeSearch").value="";$('tradeTypeFilter').value="";$('tradeSeriesFilter').value="";$('tradeRarityFilter').value="";$('tradeFavoriteFilter').value="";renderTrade()};
 $("tradeWantTab").onclick=()=>{tradeMode="want";$('tradeWantTab').classList.add('active');$('tradeOfferTab').classList.remove('active');renderTrade()};
 $("tradeOfferTab").onclick=()=>{tradeMode="offer";$('tradeOfferTab').classList.add('active');$('tradeWantTab').classList.remove('active');renderTrade()};
+$("cardViewToggle").onclick=()=>{cardViewMode=cardViewMode==="list"?"grid":"list";render()};
+$("tradeViewToggle").onclick=()=>{tradeViewMode=tradeViewMode==="list"?"grid":"list";renderTrade()};
 $("unownedToggle").onclick=()=>{unownedOnly=!unownedOnly;$("unownedToggle").classList.toggle("on",unownedOnly);render()};
 $("clearFilters").onclick=()=>{$("search").value="";$("typeFilter").value="";$("seriesFilter").value="";$("rarityFilter").value="";unownedOnly=false;$("unownedToggle").classList.remove("on");render()};
 function setMainTab(tab){
