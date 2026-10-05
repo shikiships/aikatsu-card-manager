@@ -22,7 +22,7 @@ h1{font-size:21px;margin:0 0 10px}.sub{font-size:12px;color:var(--muted)}
 .card{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:11px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:17px;padding:10px;margin-bottom:9px;box-shadow:0 2px 8px rgba(80,50,70,.04)}
 .thumb{width:72px;height:94px;border-radius:10px;background:linear-gradient(135deg,#f8e5ef,#fff);display:flex;align-items:center;justify-content:center;color:#b99aaa;font-size:11px;text-align:center;overflow:hidden}.thumb img{width:100%;height:100%;object-fit:cover}
 .card > div:nth-child(2){min-width:0}.name{font-weight:750;font-size:15px}.meta{font-size:11px;color:var(--muted);margin-top:4px}.qty{display:flex;align-items:center;gap:7px;margin-top:8px}.qbtn{width:29px;height:29px;border-radius:50%;background:#f5e9ef;font-size:19px;line-height:29px}.qnum{min-width:24px;text-align:center;font-weight:700}
-.more{padding:6px 9px;background:transparent;color:var(--muted);font-size:18px}.favoriteStar{position:absolute;top:5px;right:5px;font-size:22px;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.25);z-index:2}.offerCount{position:absolute;right:5px;bottom:5px;font-size:22px;line-height:1;color:#000;text-shadow:0 1px 3px rgba(255,255,255,.8);z-index:2}.thumb{position:relative}
+.more{padding:6px 9px;background:transparent;color:var(--muted);font-size:18px}.card.clickable{cursor:pointer}.thumb.gridClickable{cursor:pointer}.favoriteStar{position:absolute;top:5px;right:5px;font-size:22px;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.25);z-index:2}.offerCount{position:absolute;right:5px;bottom:5px;font-size:22px;line-height:1;color:#000;text-shadow:0 1px 3px rgba(255,255,255,.8);z-index:2}.thumb{position:relative}
 .empty{text-align:center;color:var(--muted);padding:40px 15px}
 nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:9px 14px calc(9px + env(safe-area-inset-bottom));display:flex;gap:8px;justify-content:center;z-index:6}
 nav button{flex:1;max-width:180px;padding:10px;border-radius:12px;background:#f5edf2;color:#6f5d69}nav button.active{background:#f8c5d8;color:#5a3c49;font-weight:700}
@@ -130,10 +130,10 @@ function render(){
  $("cardViewToggle").setAttribute("aria-label",cardViewMode==="list"?"グリッド形式に切り替え":"リスト形式に切り替え");
  $("cardViewToggle").title=cardViewMode==="list"?"グリッド形式":"リスト形式";
  $("cardList").innerHTML=list.length?list.map(c=>`
- <article class="card">
-  <div class="thumb">${c.image?`<img src="${c.image}">`:"カード画像"}${c.favorite?`<span class="favoriteStar">☆</span>`:""}</div>
+ <article class="card ${cardViewMode==="list"?"clickable":""}" onclick="${cardViewMode==="list"?`openEdit('${c.id}')`:``}">
+  <div class="thumb ${cardViewMode==="grid"?"gridClickable":""}" onclick="${cardViewMode==="grid"?`openEdit('${c.id}')`:``}">${c.image?`<img src="${c.image}">`:"カード画像"}${c.favorite?`<span class="favoriteStar">☆</span>`:""}</div>
   <div><div class="name">${esc(c.name)}</div><div class="meta">${esc(c.type||"タイプ未設定")} ・ ${esc(c.series||"弾未設定")} ・ ${esc(c.rarity||"レアリティ未設定")}</div>${c.memo?`<div class="memo">📝 ${esc(c.memo)}</div>`:""}
-   <div class="qty"><button class="qbtn" onclick="changeQty('${c.id}',-1)">−</button><span class="qnum">${Number(c.qty)||0}</span><button class="qbtn" onclick="changeQty('${c.id}',1)">＋</button></div>
+   <div class="qty"><button class="qbtn" onclick="event.stopPropagation();changeQty('${c.id}',-1)">−</button><span class="qnum">${Number(c.qty)||0}</span><button class="qbtn" onclick="event.stopPropagation();changeQty('${c.id}',1)">＋</button></div>
   </div>
   <button class="more" onclick="openEdit('${c.id}')">⋯</button>
  </article>`).join(""):`<div class="empty">${cards.length?"条件に合うカードがありません。":"「カードを追加」から登録してね。"} </div>`;
@@ -156,8 +156,8 @@ function renderTrade(){
   $("tradeViewToggle").setAttribute("aria-label",tradeViewMode==="list"?"グリッド形式に切り替え":"リスト形式に切り替え");
   $("tradeViewToggle").title=tradeViewMode==="list"?"グリッド形式":"リスト形式";
   $("tradeCardList").innerHTML=list.length?list.map(c=>`
- <article class="card">
-  <div class="thumb">${c.image?`<img src="${c.image}">`:"カード画像"}${c.favorite?`<span class="favoriteStar">☆</span>`:""}${tradeMode==="offer"?`<span class="offerCount">${Math.max(0,Number(c.qty)||0)-1}</span>`:""}</div>
+ <article class="card ${tradeViewMode==="list"?"clickable":""}" onclick="${tradeViewMode==="list"?`openEdit('${c.id}')`:``}">
+  <div class="thumb ${tradeViewMode==="grid"?"gridClickable":""}" onclick="${tradeViewMode==="grid"?`openEdit('${c.id}')`:``}">${c.image?`<img src="${c.image}">`:"カード画像"}${c.favorite?`<span class="favoriteStar">☆</span>`:""}${tradeMode==="offer"?`<span class="offerCount">${Math.max(0,Number(c.qty)||0)-1}</span>`:""}</div>
   <div><div class="name">${esc(c.name)}</div><div class="meta">${esc(c.type||"タイプ未設定")} ・ ${esc(c.series||"弾未設定")} ・ ${esc(c.rarity||"レアリティ未設定")}</div>${c.memo?`<div class="memo">📝 ${esc(c.memo)}</div>`:""}</div>
   <button class="more" onclick="openEdit('${c.id}')">⋯</button>
  </article>`).join(""):`<div class="empty">条件に合うカードがありません。</div>`;
